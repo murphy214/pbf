@@ -1,13 +1,21 @@
 package pbf
 
 import (
-	//"io/ioutil"
-	//"fmt"
 	"fmt"
 	"math"
-	//"vector-tile/2.1"
-	//"github.com/golang/protobuf/proto"
 )
+
+
+
+// the structure used for implementing a custom reader 
+type PBF struct {
+	Pbf []byte
+	Pos int
+	Length int
+}
+
+var powerfactor = math.Pow(10.0,7.0)
+const maxVarintBytes = 10 // maximum Length of a varint
 
 
 func Round(val float64, roundOn float64, places int ) (newVal float64) {
@@ -24,17 +32,6 @@ func Round(val float64, roundOn float64, places int ) (newVal float64) {
 	return
 }
 
-var powerfactor = math.Pow(10.0,7.0)
-var Powerfactor = math.Pow(10.0,7.0)
-
-// 
-type PBF struct {
-	Pbf []byte
-	Pos int
-	Length int
-}
-
-const maxVarintBytes = 10 // maximum Length of a varint
 
 // EncodeVarint returns the varint encoding of x.
 // This is the format for the
@@ -226,7 +223,6 @@ func ReadUInt32(buf []byte) uint32 {
 		return uint32(buf[0]) | uint32(buf[1])<<8 | uint32(buf[2])<<16 | uint32(buf[3])<<24
 	}
 	
-
 	return uint32(0)
 }
 
@@ -242,10 +238,8 @@ func ReadInt32(buf []byte) int32 {
     	return int32(buf[0]) | int32(buf[1]) << 8 | int32(buf[2]) << 16
 	case 4:
     	return int32(buf[0]) | int32(buf[1]) << 8 | int32(buf[2]) << 16  + int32(buf[3]) << 24
-	}
-	    
+	}    
 	return int32(0)
-    	//return int32(buf[0]) | int32(buf[1]) << 8 | int32(buf[2]) << 16  + int32(buf[3]) << 24
 }
 
 
@@ -260,9 +254,8 @@ func ReadInt64(bytes []byte) int64 {
 }
 
 
-
+// reads a key
 func (pbf *PBF) ReadKey() (byte,byte) {
-	
 	var key,val byte
 	if pbf.Pos > pbf.Length - 1 {
 		key,val = 100,100
@@ -272,11 +265,9 @@ func (pbf *PBF) ReadKey() (byte,byte) {
 
 	}
 	return key,val	
-	//pbf.Pos += 1
-	//return Key(pbf.Pbf[pbf.Pos-1])
 }
 
-
+// old read varint implementatino
 func (pbf *PBF) ReadVarint2() int {
 
 	if pbf.Pos + 1 >= pbf.Length {
@@ -301,6 +292,7 @@ func (pbf *PBF) ReadVarint2() int {
 	return int(DecodeVarint(pbf.Pbf[startPos:pbf.Pos]))
 }
 
+// read s var int
 func (pbf *PBF) ReadSVarint() float64 {
 	num := int(pbf.ReadVarint())
 	if num%2 == 1 {
@@ -311,6 +303,7 @@ func (pbf *PBF) ReadSVarint() float64 {
 	return float64(0)
 }
 
+// read s varint with geobuf deltas 
 func (pbf *PBF) ReadSVarintPower() float64 {
 	num := int(pbf.ReadVarint())
 	if num%2 == 1 {
@@ -331,25 +324,20 @@ func (pbf *PBF) Varint() []byte {
 	return pbf.Pbf[startPos:pbf.Pos]
 }
 
-
-
 func (pbf *PBF) ReadFixed32() uint32 {
 	val := ReadUInt32(pbf.Pbf[pbf.Pos:pbf.Pos+4])
 
 	pbf.Pos += 4
 	return val
 }
-/*
-func (pbf *PBF) ReadUInt32() uint32 {
-	return ReadUInt32(pbf.Varint())
-}
-*/
 
+// old reauint32 impolementation
 func (pbf *PBF) ReadUInt322() uint32 {
 	return uint32(pbf.Pbf[pbf.Pos+0]) | uint32(pbf.Pbf[pbf.Pos+1])<<8 | uint32(pbf.Pbf[pbf.Pos+2])<<16 | uint32(pbf.Pbf[pbf.Pos+3])<<24
 
 }
 
+// readuint32 implemenation
 func (pbf *PBF) ReadUInt32() uint32 {
 	if pbf.Pbf[pbf.Pos] < 128  {
 		pbf.Pos += 1
@@ -370,7 +358,7 @@ func (pbf *PBF) ReadUInt32() uint32 {
 	return uint32(0)
 }
 
-
+// the definitive read var int implenation
 func (pbf *PBF) ReadVarint() int {
 	left := pbf.Length - pbf.Pos 
 	if pbf.Pbf[pbf.Pos+0] < 128 && left >= 1 {
@@ -412,31 +400,24 @@ func (pbf *PBF) ReadVarint() int {
 }
 
 
-
-
-
+// read int32
 func (pbf *PBF) ReadInt32() int32 {
     return int32(pbf.Pbf[pbf.Pos+0]) | int32(pbf.Pbf[+1]) << 8 | int32(pbf.Pbf[pbf.Pos+2]) << 16  + int32(pbf.Pbf[pbf.Pos+3]) << 24
 }
-
-
 
 func (pbf *PBF) ReadSFixed32() int32 {
 	val := ReadInt32(pbf.Pbf[pbf.Pos:pbf.Pos+4])
 	pbf.Pos += 4
 	return val
 }
-/*
-func (pbf *PBF) ReadInt32() int32 {
-	return ReadInt32(pbf.Varint())
-}
-*/
+
 // reads a uint64 from a list of bytes
 func (pbf *PBF) ReadFixed64() uint64 {
 	v := DecodeVarint(pbf.Pbf[pbf.Pos:pbf.Pos+8])
 	pbf.Pos += 8
 	return v
 }
+
 
 func (pbf *PBF) ReadUInt64() uint64 {
 	return ReadUint64(pbf.Varint())
@@ -476,7 +457,6 @@ func (pbf *PBF) ReadString() string {
 }
 
 func (pbf *PBF) ReadBool() bool {
-
 	if pbf.Pbf[pbf.Pos] == 1 {
 		pbf.Pos += 1
 		return true
@@ -484,22 +464,10 @@ func (pbf *PBF) ReadBool() bool {
 		pbf.Pos += 1
 		return false
 	}
-
-	//pbf.Byte()
-	/*
-	//size := pbf.ReadVarint()
-	buf := pbf.Pbf[pbf.Pos:pbf.Pos+1]
-	pbf.Pos += 1
-
-	if buf[0] == 1 {
-		return true
-	} else if buf[0] == 0 {
-		return false
-	}
-	*/
 	return false
 }
 
+// an unused implemenation of readuint32
 func (pbf *PBF) ReadPacked() []uint32 {
 
 	endpos := pbf.Pos + pbf.ReadVarint()
@@ -539,6 +507,8 @@ func (pbf *PBF) ReadPacked() []uint32 {
 	return vals[:currentpos]
 }
 
+
+// geobuf functions i still have in here
 func (pbf *PBF) ReadPoint(endpos int) []float64 {
 	for pbf.Pos < endpos {
 		x := pbf.ReadSVarintPower()
@@ -564,16 +534,6 @@ func (pbf *PBF) ReadLine(num int,endpos int) [][]float64 {
 			y += pbf.ReadSVarintPower()
 			newlist[i] = []float64{x,y}
 		}
-		
-		/*
-		newlist := [][]float64{}
-		for pbf.Pos < endpos {
-			x += pbf.ReadSVarintPower()
-			y += pbf.ReadSVarintPower()
-			newlist = append(newlist,[]float64{x,y})
-		}
-		*/
-
 
 		return newlist
 	} else {
@@ -627,9 +587,7 @@ func (pbf *PBF) ReadBoundingBox() []float64 {
 
 }	
 
-
-
-
+// an attempted readpackeduint implementation
 func (pbf *PBF) ReadPackedUInt32_3() []uint32 {
 	//startpos := pbf.Pos
 
@@ -654,7 +612,7 @@ func (pbf *PBF) ReadPackedUInt32_3() []uint32 {
 	return arr
 }
 
-
+// the current readpacked uint32 implemenation
 func (pbf *PBF) ReadPackedUInt32() []uint32 {
 	//startpos := pbf.Pos
 
@@ -673,7 +631,7 @@ func (pbf *PBF) ReadPackedUInt32() []uint32 {
 	return arr
 }
 
-
+// an old read packed uint32 impelementation
 func (pbf *PBF) ReadPackedUInt32_2() []uint32 {
 	size := pbf.ReadVarint()
 	endpos := pbf.Pos + size
@@ -695,15 +653,10 @@ func (pbf *PBF) ReadPackedUInt32_2() []uint32 {
 	return arr[:pos]
 }
 
-
-
+// show me the next 5 bytes
 func (pbf *PBF) Byte() {
 	fmt.Println(pbf.Pbf[pbf.Pos],"current")
 	fmt.Println(pbf.Pbf[pbf.Pos:pbf.Pos+5],"next5")
-}
-
-func Reverse(val []byte) []byte {
-	return []byte{val[7],val[6],val[5],val[4],val[3],val[2],val[1],val[0]}
 }
 
 
