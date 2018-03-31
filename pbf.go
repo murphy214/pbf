@@ -572,6 +572,24 @@ func (pbf *PBF) ReadBoundingBox() []float64 {
 
 }
 
+func (pbf *PBF) ReadPackedInt32() []int32 {
+	//startpos := pbf.Pos
+
+	size := pbf.ReadVarint()
+	arr := []int32{}
+	endpos := pbf.Pos + size
+
+	for pbf.Pos < endpos {
+		arr = append(arr, int32(pbf.ReadUInt32()))
+	}
+
+	return arr
+}
+
+func NewPBF(bytevals []byte) *PBF {
+	return &PBF{Pbf: bytevals, Length: len(bytevals)}
+}
+
 // an attempted readpackeduint implementation
 func (pbf *PBF) ReadPackedUInt32_3() []uint32 {
 	//startpos := pbf.Pos
