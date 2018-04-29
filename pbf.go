@@ -500,7 +500,7 @@ func (pbf *PBF) ReadPoint(endpos int) []float64 {
 	for pbf.Pos < endpos {
 		x := pbf.ReadSVarintPower()
 		y := pbf.ReadSVarintPower()
-		return []float64{x, y}
+		return []float64{Round(x, .5, 7), Round(y, .5, 7)}
 	}
 	return []float64{}
 }
@@ -519,7 +519,7 @@ func (pbf *PBF) ReadLine(num int, endpos int) [][]float64 {
 		for i := 0; i < num/2; i++ {
 			x += pbf.ReadSVarintPower()
 			y += pbf.ReadSVarintPower()
-			newlist[i] = []float64{x, y}
+			newlist[i] = []float64{Round(x, .5, 7), Round(y, .5, 7)}
 		}
 
 		return newlist
@@ -530,7 +530,7 @@ func (pbf *PBF) ReadLine(num int, endpos int) [][]float64 {
 			x += pbf.ReadSVarintPower()
 			y += pbf.ReadSVarintPower()
 
-			newlist[i] = []float64{x, y}
+			newlist[i] = []float64{Round(x, .5, 7), Round(y, .5, 7)}
 
 		}
 		return newlist
