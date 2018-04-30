@@ -564,10 +564,10 @@ func (pbf *PBF) ReadMultiPolygon(endpos int) [][][][]float64 {
 func (pbf *PBF) ReadBoundingBox() []float64 {
 	bb := make([]float64, 4)
 	pbf.ReadVarint()
-	bb[0] = float64(pbf.ReadVarint()) / powerfactor
-	bb[1] = float64(pbf.ReadVarint()) / powerfactor
-	bb[2] = float64(pbf.ReadVarint()) / powerfactor
-	bb[3] = float64(pbf.ReadVarint()) / powerfactor
+	bb[0] = float64(pbf.ReadSVarintPower())
+	bb[1] = float64(pbf.ReadSVarintPower())
+	bb[2] = float64(pbf.ReadSVarintPower())
+	bb[3] = float64(pbf.ReadSVarintPower())
 	return bb
 
 }
