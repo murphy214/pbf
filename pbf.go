@@ -159,99 +159,6 @@ func DecodeVarint(buf []byte) (x uint64) {
 done:
 	return x
 }
-func (pbf *PBF) ReadVarint() int {
-	if pbf.Length-pbf.Pos <= 1 {
-		pbf.Pos += 1
-		return 0
-	}
-	var x uint64
-	if pbf.Pbf[pbf.Pos] < 0x80 {
-		pbf.Pos++
-		return int(pbf.Pbf[pbf.Pos-1])
-
-	}
-
-	var b uint64
-	// we already checked the first byte
-	x = uint64(pbf.Pbf[pbf.Pos]) - 0x80
-	pbf.Pos++
-
-	b = uint64(pbf.Pbf[pbf.Pos])
-	pbf.Pos++
-	x += b << 7
-	if b&0x80 == 0 {
-		goto done
-	}
-	x -= 0x80 << 7
-
-	b = uint64(pbf.Pbf[pbf.Pos])
-	pbf.Pos++
-	x += b << 14
-	if b&0x80 == 0 {
-		goto done
-	}
-	x -= 0x80 << 14
-
-	b = uint64(pbf.Pbf[pbf.Pos])
-	pbf.Pos++
-	x += b << 21
-	if b&0x80 == 0 {
-		goto done
-	}
-	x -= 0x80 << 21
-
-	b = uint64(pbf.Pbf[pbf.Pos])
-	pbf.Pos++
-	x += b << 28
-	if b&0x80 == 0 {
-		goto done
-	}
-	x -= 0x80 << 28
-
-	b = uint64(pbf.Pbf[pbf.Pos])
-	pbf.Pos++
-	x += b << 35
-	if b&0x80 == 0 {
-		goto done
-	}
-	x -= 0x80 << 35
-
-	b = uint64(pbf.Pbf[pbf.Pos])
-	pbf.Pos++
-	x += b << 42
-	if b&0x80 == 0 {
-		goto done
-	}
-	x -= 0x80 << 42
-
-	b = uint64(pbf.Pbf[pbf.Pos])
-	pbf.Pos++
-	x += b << 49
-	if b&0x80 == 0 {
-		goto done
-	}
-	x -= 0x80 << 49
-
-	b = uint64(pbf.Pbf[pbf.Pos])
-	pbf.Pos++
-	x += b << 56
-	if b&0x80 == 0 {
-		goto done
-	}
-	x -= 0x80 << 56
-
-	b = uint64(pbf.Pbf[pbf.Pos])
-	pbf.Pos++
-	x += b << 63
-	if b&0x80 == 0 {
-		goto done
-	}
-	// x -= 0x80 << 63 // Always zero.
-	return 0
-
-done:
-	return int(x)
-}
 
 // a much faster key integration (microseconds to nanoseconds)
 // returns the value number and key number for a given byte
@@ -380,7 +287,7 @@ func (pbf *PBF) ReadVarint2() int {
 
 // read s var int
 func (pbf *PBF) ReadSVarint() float64 {
-	num := pbf.ReadVarint()
+	num := int(pbf.ReadVarint())
 	if num%2 == 1 {
 		return float64((num + 1) / -2)
 	} else {
@@ -445,7 +352,7 @@ func (pbf *PBF) ReadUInt32() uint32 {
 }
 
 // the definitive read var int implenation
-func (pbf *PBF) ReadVarint_Old() int {
+func (pbf *PBF) ReadVarint() int {
 	left := pbf.Length - pbf.Pos
 	if pbf.Pbf[pbf.Pos+0] < 128 && left >= 1 {
 		a := pbf.Pos
@@ -657,10 +564,10 @@ func (pbf *PBF) ReadMultiPolygon(endpos int) [][][][]float64 {
 func (pbf *PBF) ReadBoundingBox() []float64 {
 	bb := make([]float64, 4)
 	pbf.ReadVarint()
-	bb[0] = float64(pbf.ReadSVarintPower())
-	bb[1] = float64(pbf.ReadSVarintPower())
-	bb[2] = float64(pbf.ReadSVarintPower())
-	bb[3] = float64(pbf.ReadSVarintPower())
+	bb[0] = float64(pbf.ReadVarint()) / powerfactor
+	bb[1] = float64(pbf.ReadVarint()) / powerfactor
+	bb[2] = float64(pbf.ReadVarint()) / powerfactor
+	bb[3] = float64(pbf.ReadVarint()) / powerfactor
 	return bb
 
 }
