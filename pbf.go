@@ -407,7 +407,6 @@ func (pbf *PBF) ReadSFixed32() int32 {
 func (pbf *PBF) ReadFixed64() uint64 {
 	a := pbf.Pos
 	val := uint64(pbf.Pbf[a]) | uint64(pbf.Pbf[a+1])<<8 | uint64(pbf.Pbf[a+2])<<16 | uint64(pbf.Pbf[a+3])<<24 | uint64(pbf.Pbf[a+4])<<32 | uint64(pbf.Pbf[a+5])<<40 | uint64(pbf.Pbf[a+6])<<48 | uint64(pbf.Pbf[a+7])<<56
-	//v,_ := binary.Uvarint(pbf.Pbf[pbf.Pos : pbf.Pos+8])
 	pbf.Pos += 8
 	return val
 }
@@ -418,9 +417,8 @@ func (pbf *PBF) ReadUInt64() uint64 {
 
 // reads a uint64 from a list of bytes
 func (pbf *PBF) ReadSFixed64() int64 {
-	v := DecodeVarint(pbf.Pbf[pbf.Pos : pbf.Pos+8])
-	pbf.Pos += 8
-	return int64(v)
+	val := pbf.ReadFixed64()
+	return int64(val)
 }
 
 func (pbf *PBF) ReadInt64() int64 {
