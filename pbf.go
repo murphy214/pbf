@@ -495,6 +495,7 @@ func (pbf *PBF) ReadPacked() []uint32 {
 	return vals[:currentpos]
 }
 
+// TO-DO: needs to be abstracted out into appropriate geobuf package
 // geobuf functions i still have in here
 func (pbf *PBF) ReadPoint(endpos int) []float64 {
 	for pbf.Pos < endpos {
@@ -505,6 +506,8 @@ func (pbf *PBF) ReadPoint(endpos int) []float64 {
 	return []float64{}
 }
 
+// TO-DO: needs to be abstracted out into appropriate geobuf package
+// reads a line
 func (pbf *PBF) ReadLine(num int, endpos int) [][]float64 {
 	var x, y float64
 	if num == 0 {
@@ -538,6 +541,7 @@ func (pbf *PBF) ReadLine(num int, endpos int) [][]float64 {
 	return [][]float64{}
 }
 
+// TO-DO: needs to be abstracted out into appropriate geobuf package
 func (pbf *PBF) ReadPolygon(endpos int) [][][]float64 {
 	polygon := [][][]float64{}
 	for pbf.Pos < endpos {
@@ -547,6 +551,7 @@ func (pbf *PBF) ReadPolygon(endpos int) [][][]float64 {
 	return polygon
 }
 
+// TO-DO: needs to be abstracted out into appropriate geobuf package
 func (pbf *PBF) ReadMultiPolygon(endpos int) [][][][]float64 {
 	multipolygon := [][][][]float64{}
 	for pbf.Pos < endpos {
@@ -560,6 +565,8 @@ func (pbf *PBF) ReadMultiPolygon(endpos int) [][][][]float64 {
 	}
 	return multipolygon
 }
+
+// TO-DO: needs to be abstracted out into appropriate geobuf package
 func (pbf *PBF) ReadBoundingBox() []float64 {
 	bb := make([]float64, 4)
 	pbf.ReadVarint()
@@ -570,6 +577,7 @@ func (pbf *PBF) ReadBoundingBox() []float64 {
 	return bb
 }
 
+// small function to read a packed set of int32 tags
 func (pbf *PBF) ReadPackedInt32() []int32 {
 	//startpos := pbf.Pos
 
@@ -579,6 +587,22 @@ func (pbf *PBF) ReadPackedInt32() []int32 {
 
 	for pbf.Pos < endpos {
 		arr = append(arr, int32(pbf.ReadUInt32()))
+	}
+
+	return arr
+}
+
+
+// small function to read a packed set of integers
+func (pbf *PBF) ReadPackedUInt64() []int {
+	//startpos := pbf.Pos
+
+	size := pbf.ReadVarint()
+	arr := []int{}
+	endpos := pbf.Pos + size
+
+	for pbf.Pos < endpos {
+		arr = append(arr, pbf.ReadVarint())
 	}
 
 	return arr
