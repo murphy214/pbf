@@ -387,7 +387,6 @@ func (pbf *PBF) ReadVarint() int {
 		a := pbf.Pos
 		pbf.Pos += 8
 		return int(DecodeVarint(pbf.Pbf[a:pbf.Pos]))
-
 	}
 	return int(0)
 }
@@ -493,88 +492,6 @@ func (pbf *PBF) ReadPacked() []uint32 {
 		}
 	}
 	return vals[:currentpos]
-}
-
-// TO-DO: needs to be abstracted out into appropriate geobuf package
-// geobuf functions i still have in here
-func (pbf *PBF) ReadPoint(endpos int) []float64 {
-	for pbf.Pos < endpos {
-		x := pbf.ReadSVarintPower()
-		y := pbf.ReadSVarintPower()
-		return []float64{Round(x, .5, 7), Round(y, .5, 7)}
-	}
-	return []float64{}
-}
-
-// TO-DO: needs to be abstracted out into appropriate geobuf package
-// reads a line
-func (pbf *PBF) ReadLine(num int, endpos int) [][]float64 {
-	var x, y float64
-	if num == 0 {
-
-		for startpos := pbf.Pos; startpos < endpos; startpos++ {
-			if pbf.Pbf[startpos] <= 127 {
-				num += 1
-			}
-		}
-		newlist := make([][]float64, num/2)
-
-		for i := 0; i < num/2; i++ {
-			x += pbf.ReadSVarintPower()
-			y += pbf.ReadSVarintPower()
-			newlist[i] = []float64{Round(x, .5, 7), Round(y, .5, 7)}
-		}
-
-		return newlist
-	} else {
-		newlist := make([][]float64, num/2)
-
-		for i := 0; i < num/2; i++ {
-			x += pbf.ReadSVarintPower()
-			y += pbf.ReadSVarintPower()
-
-			newlist[i] = []float64{Round(x, .5, 7), Round(y, .5, 7)}
-
-		}
-		return newlist
-	}
-	return [][]float64{}
-}
-
-// TO-DO: needs to be abstracted out into appropriate geobuf package
-func (pbf *PBF) ReadPolygon(endpos int) [][][]float64 {
-	polygon := [][][]float64{}
-	for pbf.Pos < endpos {
-		num := pbf.ReadVarint()
-		polygon = append(polygon, pbf.ReadLine(num, endpos))
-	}
-	return polygon
-}
-
-// TO-DO: needs to be abstracted out into appropriate geobuf package
-func (pbf *PBF) ReadMultiPolygon(endpos int) [][][][]float64 {
-	multipolygon := [][][][]float64{}
-	for pbf.Pos < endpos {
-		num_rings := pbf.ReadVarint()
-		polygon := make([][][]float64, num_rings)
-		for i := 0; i < num_rings; i++ {
-			num := pbf.ReadVarint()
-			polygon[i] = pbf.ReadLine(num, endpos)
-		}
-		multipolygon = append(multipolygon, polygon)
-	}
-	return multipolygon
-}
-
-// TO-DO: needs to be abstracted out into appropriate geobuf package
-func (pbf *PBF) ReadBoundingBox() []float64 {
-	bb := make([]float64, 4)
-	pbf.ReadVarint()
-	bb[0] = float64(pbf.ReadSVarintPower())
-	bb[1] = float64(pbf.ReadSVarintPower())
-	bb[2] = float64(pbf.ReadSVarintPower())
-	bb[3] = float64(pbf.ReadSVarintPower())
-	return bb
 }
 
 // small function to read a packed set of int32 tags
